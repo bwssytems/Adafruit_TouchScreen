@@ -8,29 +8,12 @@
 #include <stdint.h>
 
 // ESP32 specific 
-#define ESP32_WIFI_TOUCH // uncomment to use parallel MCU Friend LCD touchscreen with ESP32 UNO Wifi
-#ifdef ESP32 
 #define ADC_MAX 4095  // maximum value for ESP32 ADC (default 11db, 12 bits)
-#define aXM 35  // analog input pin connected to LCD_RS 
-#define aYP 39  // analog input pin connected to LCD_WR
-#else
-#define ADC_MAX 1023  // Arduino
-#endif 
+
 #define NOISE_LEVEL 4  // Allow small amount of measurement noise
 
-#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega32U4__) || defined(TEENSYDUINO) || defined(__AVR_ATmega2560__)
-typedef volatile uint8_t RwReg;
-#endif
-#if defined(ARDUINO_STM32_FEATHER)
-typedef volatile uint32 RwReg;
-#endif
-#if defined(ARDUINO_FEATHER52) || defined(ESP32)
-typedef volatile uint32_t RwReg;
-#endif
 
-#if defined (__AVR__) || defined(TEENSYDUINO) || defined(ARDUINO_ARCH_SAMD)
-  #define USE_FAST_PINIO
-#endif
+typedef volatile uint32_t RwReg;
 
 class TSPoint {
  public:

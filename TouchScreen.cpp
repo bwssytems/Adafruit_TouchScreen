@@ -5,13 +5,8 @@
 // Code under MIT License
 
 #include "Arduino.h"
-#include "pins_arduino.h"
+//#include "pins_arduino.h"
 
-#ifdef __AVR
-  #include <avr/pgmspace.h>
-#elif defined(ESP8266)
-  #include <pgmspace.h>
-#endif
 #include "TouchScreen.h"
 
 // increase or decrease the touchscreen oversampling. This is a little different than you make think:
@@ -20,7 +15,7 @@
 // 3+ uses insert sort to get the median value.
 // We found 2 is precise yet not too slow so we suggest sticking with it!
 
-#define NUMSAMPLES 2
+#define NUMSAMPLES 4
 
 TSPoint::TSPoint(void) {
   x = y = 0;
@@ -66,24 +61,11 @@ TSPoint TouchScreen::getPoint(void) {
   pinMode(_xp, OUTPUT);
   pinMode(_xm, OUTPUT);
 
-#if defined (USE_FAST_PINIO)
-  *xp_port |= xp_pin;
-  *xm_port &= ~xm_pin;
-#else
   digitalWrite(_xp, HIGH);
   digitalWrite(_xm, LOW);
-#endif
-
-#ifdef __arm__
-  delayMicroseconds(20); // Fast ARM chips need to allow voltages to settle
-#endif
 
    for (i=0; i<NUMSAMPLES; i++) {
-#if defined (ESP32_WIFI_TOUCH) && defined (ESP32)
-     samples[i] = analogRead(aYP);
-#else
      samples[i] = analogRead(_yp);
-#endif
    }
 
 #if NUMSAMPLES > 2
@@ -106,25 +88,11 @@ TSPoint TouchScreen::getPoint(void) {
    pinMode(_yp, OUTPUT);
    pinMode(_ym, OUTPUT);
 
-#if defined (USE_FAST_PINIO)
-   *ym_port &= ~ym_pin;
-   *yp_port |= yp_pin;
-#else
    digitalWrite(_ym, LOW);
    digitalWrite(_yp, HIGH);
-#endif
-
-  
-#ifdef __arm__
-   delayMicroseconds(20); // Fast ARM chips need to allow voltages to settle
-#endif
 
    for (i=0; i<NUMSAMPLES; i++) {
-#if defined (ESP32_WIFI_TOUCH) && defined (ESP32)
-     samples[i] = analogRead(aXM);
-#else
      samples[i] = analogRead(_xm);
-#endif
    }
 
 #if NUMSAMPLES > 2
@@ -148,22 +116,11 @@ TSPoint TouchScreen::getPoint(void) {
    pinMode(_xp, OUTPUT);
    pinMode(_yp, INPUT);
 
-#if defined (USE_FAST_PINIO)
-   *xp_port &= ~xp_pin;
-   *ym_port |= ym_pin;
-#else
    digitalWrite(_xp, LOW);
-   digitalWrite(_ym, HIGH); 
-#endif
-  
+   digitalWrite(_ym, HIGH);  
 
-#if defined (ESP32_WIFI_TOUCH) && defined (ESP32)
-   int z1 = analogRead(aXM); 
-   int z2 = analogRead(aYP);
-#else
    int z1 = analogRead(_xm); 
    int z2 = analogRead(_yp);
-#endif
 
    if (_rxplate != 0) {
      // now read the x 
@@ -195,18 +152,6 @@ TouchScreen::TouchScreen(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym,
   _xp = xp;
   _rxplate = rxplate;
 
-#if defined (USE_FAST_PINIO)
-  xp_port =  portOutputRegister(digitalPinToPort(_xp));
-  yp_port =  portOutputRegister(digitalPinToPort(_yp));
-  xm_port =  portOutputRegister(digitalPinToPort(_xm));
-  ym_port =  portOutputRegister(digitalPinToPort(_ym));
-  
-  xp_pin = digitalPinToBitMask(_xp);
-  yp_pin = digitalPinToBitMask(_yp);
-  xm_pin = digitalPinToBitMask(_xm);
-  ym_pin = digitalPinToBitMask(_ym);
-#endif
-
   pressureThreshhold = 10;
 }
 
@@ -221,11 +166,7 @@ int TouchScreen::readTouchX(void) {
    pinMode(_xm, OUTPUT);
    digitalWrite(_xm, LOW);
 
-#if defined (ESP32_WIFI_TOUCH) && defined (ESP32)
-   return (ADC_MAX-analogRead(aYP));
-#else
    return (ADC_MAX-analogRead(_yp));
-#endif
 }
 
 
@@ -239,12 +180,8 @@ int TouchScreen::readTouchY(void) {
    digitalWrite(_yp, HIGH);
    pinMode(_ym, OUTPUT);
    digitalWrite(_ym, LOW);
-   
-#if defined (ESP32_WIFI_TOUCH) && defined (ESP32)
-   return (ADC_MAX-analogRead(aXM));
-#else
+
    return (ADC_MAX-analogRead(_xm));
-#endif
 }
 
 
@@ -262,15 +199,9 @@ uint16_t TouchScreen::pressure(void) {
   pinMode(_xm, INPUT);
   digitalWrite(_yp, LOW);
   pinMode(_yp, INPUT);
-  
-#if defined (ESP32_WIFI_TOUCH) && defined (ESP32)
-  int z1 = analogRead(aXM); 
-  int z2 = analogRead(aYP);
-#else
+
   int z1 = analogRead(_xm); 
   int z2 = analogRead(_yp);
-#endif
-
 
   if (_rxplate != 0) {
     // now read the x 
