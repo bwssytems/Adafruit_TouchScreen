@@ -18,6 +18,29 @@ YP |   CS |
 XM |   RS |
 YM |    D1 |
 XP |    D0 |
+```
+int XP=12,XM=15,YP=33,YM=13;
+```
+Also, you must restore the analog and digital pins used to read touch to be able to continue writing:
+```
+  TSPoint tp = <TouchScreen>.getPoint();
+  pinMode( YP, OUTPUT); //restore shared pins
+  pinMode( XM, OUTPUT);
+  digitalWrite( YP, HIGH); //because TFT control pins
+  digitalWrite( XM, HIGH);
+```
+Then the point must be mapped based on the calibration parameters recevied. An example here is of a 240x320 display.
+```
+// PORTRAIT  CALIBRATION     240 x 320
+int TS_LEFT=516,TS_RT=3677,TS_TOP=3691,TS_BOT=56; //PORTRAIT Example
+x = map(p.x, TS_LEFT=516, TS_RT=3677, 0, 240)
+y = map(p.y, TS_TOP=3691, TS_BOT=56, 0, 320)
+
+// LANDSCAPE CALIBRATION     320 x 240
+int TS_LEFT=3691,TS_RT=56,TS_TOP=3677,TS_BOT=516; //LANDSCAPE Example
+x = map(p.y, TS_LEFT=3691, TS_RT=56, 0, 320)
+y = map(p.x, TS_TOP=3677, TS_BOT=516, 0, 240)
+```
 
 ## Installing
 
